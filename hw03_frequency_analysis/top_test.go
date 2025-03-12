@@ -79,4 +79,12 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+
+	t.Run("only 10 words", func(t *testing.T) {
+		require.Len(t, Top10("Как видите, он  спускается  по  лестнице  вслед  за  своим другом"), 10)
+	})
+
+	t.Run("less 10 words", func(t *testing.T) {
+		require.Len(t, Top10("Как видите, он  спускается снова и снова"), 6)
+	})
 }
