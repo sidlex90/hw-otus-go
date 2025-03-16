@@ -92,7 +92,7 @@ func TestCacheMultithreading(t *testing.T) {
 	wg.Wait()
 }
 
-func TestByComment(t *testing.T) {
+func TestPurge(t *testing.T) {
 	t.Run("purge logic", func(t *testing.T) {
 		c := NewCache(3)
 
