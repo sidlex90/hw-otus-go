@@ -91,3 +91,26 @@ func TestCacheMultithreading(t *testing.T) {
 
 	wg.Wait()
 }
+
+func TestByComment(t *testing.T) {
+	t.Run("purge logic", func(t *testing.T) {
+		c := NewCache(3)
+
+		c.Set("1", "one")
+		c.Set("2", "two")
+		c.Set("3", "three")
+
+		c.Set("4", "four")
+
+		if _, found := c.Get("1"); found {
+			t.Error("Expected element to be purged, but it was found")
+		}
+
+		c.Get("2")
+		c.Set("5", "five")
+
+		if _, found := c.Get("3"); found {
+			t.Error("Expected element to be purged, but it was found")
+		}
+	})
+}
