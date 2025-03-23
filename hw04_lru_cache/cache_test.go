@@ -50,7 +50,21 @@ func TestCache(t *testing.T) {
 	})
 
 	t.Run("purge logic", func(t *testing.T) {
-		// Write me
+		c := NewCache(5)
+
+		wasInCache := c.Set("aaa", 100)
+		require.False(t, wasInCache)
+
+		wasInCache = c.Set("bbb", 200)
+		require.False(t, wasInCache)
+
+		c.Clear()
+
+		_, ok := c.Get("aaa")
+		require.False(t, ok)
+
+		_, ok = c.Get("bbb")
+		require.False(t, ok)
 	})
 }
 
@@ -76,4 +90,27 @@ func TestCacheMultithreading(t *testing.T) {
 	}()
 
 	wg.Wait()
+}
+
+func TestPurge(t *testing.T) {
+	t.Run("purge logic", func(t *testing.T) {
+		c := NewCache(3)
+
+		c.Set("1", "one")
+		c.Set("2", "two")
+		c.Set("3", "three")
+
+		c.Set("4", "four")
+
+		if _, found := c.Get("1"); found {
+			t.Error("Expected element to be purged, but it was found")
+		}
+
+		c.Get("2")
+		c.Set("5", "five")
+
+		if _, found := c.Get("3"); found {
+			t.Error("Expected element to be purged, but it was found")
+		}
+	})
 }
