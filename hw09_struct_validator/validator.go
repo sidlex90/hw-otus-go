@@ -15,10 +15,10 @@ type ValidationError struct {
 }
 
 var (
-	//validator params errors
+	// validator params errors.
 	ErrValidatorCompilationError = errors.New("validator compilation error: ")
 
-	//validation error
+	// validation error.
 	ErrInvalidStringLen    = errors.New("invalid string length: ")
 	ErrInvalidStringRegexp = errors.New("invalid string format: ")
 	ErrInvalidMin          = errors.New("invalid min value: ")
@@ -33,7 +33,6 @@ func (v ValidationErrors) Error() string {
 }
 
 func Validate(v interface{}) (ValidationErrors, error) {
-
 	var validationErrors []ValidationError
 
 	// Ensure the input is a struct
@@ -83,7 +82,12 @@ func eachValidation(validation, fieldName string, fieldValue reflect.Value) (err
 func runValidation(validation, fieldName string, fieldValue reflect.Value) (error, error) {
 	parts := strings.SplitN(validation, ":", 2)
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("%w invalid validation format: %s", ErrValidatorCompilationError, validation)
+		return nil, fmt.Errorf(
+			"%w invalid validation format: %s for field %s",
+			ErrValidatorCompilationError,
+			validation,
+			fieldName,
+		)
 	}
 
 	rule, param := parts[0], parts[1]
@@ -129,31 +133,32 @@ func validateRegex(regex string, value string) (error, error) {
 }
 
 func validateMin(fieldValue reflect.Value, param string) (error, error) {
-	min, err := strconv.Atoi(param)
+	minParam, err := strconv.Atoi(param)
 	if err != nil {
 		return nil, fmt.Errorf("%w invalid min value: %s", ErrValidatorCompilationError, param)
 	}
 
-	if fieldValue.Kind() == reflect.Int && int(fieldValue.Int()) < min {
-		return fmt.Errorf("%wvalue must be at least %d", ErrInvalidMin, min), nil
+	if fieldValue.Kind() == reflect.Int && int(fieldValue.Int()) < minParam {
+		return fmt.Errorf("%wvalue must be at least %d", ErrInvalidMin, minParam), nil
 	}
 	return nil, nil
 }
 
 func validateMax(fieldValue reflect.Value, param string) (error, error) {
-	max, err := strconv.Atoi(param)
+	maxParam, err := strconv.Atoi(param)
 	if err != nil {
 		return nil, fmt.Errorf("%w invalid max value: %s", ErrValidatorCompilationError, param)
 	}
 
-	if fieldValue.Kind() == reflect.Int && int(fieldValue.Int()) > max {
-		return fmt.Errorf("%w value must be at most %d", ErrInvalidMax, max), nil
+	if fieldValue.Kind() == reflect.Int && int(fieldValue.Int()) > maxParam {
+		return fmt.Errorf("%w value must be at most %d", ErrInvalidMax, maxParam), nil
 	}
 	return nil, nil
 }
 
 func validateIn(param string, fieldValue reflect.Value) (error, error) {
 	allowedValues := strings.Split(param, ",")
+	//nolint
 	switch fieldValue.Kind() {
 	case reflect.String:
 		value := fieldValue.String()
