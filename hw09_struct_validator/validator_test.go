@@ -122,4 +122,24 @@ func TestValidate(t *testing.T) {
 	// invalid validator format
 	_, err = Validate(Request{FakeURL: "https://test.ru"})
 	assert.ErrorIs(t, err, ErrValidatorCompilationError)
+
+	// test if input not struct
+	tests2 := []struct {
+		name        string
+		input       interface{}
+		expectedErr error
+	}{
+		{"Nil input", nil, nil},
+		{"String input", "not a struct", nil},
+		{"Int input", 123, nil},
+		{"Slice input", []string{"value1", "value2"}, nil},
+	}
+
+	for _, tt := range tests2 {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := Validate(tt.input)
+			assert.Nil(t, err)
+			assert.Len(t, result, 0)
+		})
+	}
 }
