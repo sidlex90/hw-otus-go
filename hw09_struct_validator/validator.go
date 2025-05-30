@@ -17,6 +17,7 @@ type ValidationError struct {
 var (
 	// validator params errors.
 	ErrValidatorCompilationError = errors.New("validator compilation error: ")
+	ErrNotStruct                 = errors.New("input is not a struct")
 
 	// validation error.
 	ErrInvalidStringLen    = errors.New("invalid string length: ")
@@ -37,28 +38,30 @@ func Validate(v interface{}) (ValidationErrors, error) {
 
 	// Ensure the input is a struct
 	val := reflect.ValueOf(v)
-	if val.Kind() == reflect.Struct {
-		typ := val.Type()
-		for i := 0; i < typ.NumField(); i++ {
-			field := typ.Field(i)
+	if val.Kind() != reflect.Struct {
+		return validationErrors, ErrNotStruct
+	}
 
-			// Get the "validate" tag
-			tag := field.Tag.Get("validate")
-			if tag == "" {
-				continue
-			}
+	typ := val.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
 
-			fieldValue := val.Field(i)
-			validations := strings.Split(tag, "|")
-			for _, validation := range validations {
-				if vErr, err := eachValidation(validation, field.Name, fieldValue); err == nil && vErr != nil {
-					validationErrors = append(validationErrors, ValidationError{
-						Field: field.Name,
-						Err:   vErr,
-					})
-				} else if err != nil {
-					return validationErrors, err
-				}
+		// Get the "validate" tag
+		tag := field.Tag.Get("validate")
+		if tag == "" {
+			continue
+		}
+
+		fieldValue := val.Field(i)
+		validations := strings.Split(tag, "|")
+		for _, validation := range validations {
+			if vErr, err := eachValidation(validation, field.Name, fieldValue); err == nil && vErr != nil {
+				validationErrors = append(validationErrors, ValidationError{
+					Field: field.Name,
+					Err:   vErr,
+				})
+			} else if err != nil {
+				return validationErrors, err
 			}
 		}
 	}

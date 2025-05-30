@@ -2,6 +2,7 @@ package hw09structvalidator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"testing"
 
@@ -39,6 +40,10 @@ type (
 
 	Request struct {
 		FakeURL string `validate:"len:invalid"`
+	}
+
+	ManyValidationStruct struct {
+		Field string `validate:"len:20|regexp:^[0-9]*$"`
 	}
 )
 
@@ -129,17 +134,26 @@ func TestValidate(t *testing.T) {
 		input       interface{}
 		expectedErr error
 	}{
-		{"Nil input", nil, nil},
-		{"String input", "not a struct", nil},
-		{"Int input", 123, nil},
-		{"Slice input", []string{"value1", "value2"}, nil},
+		{"Nil input", nil, ErrNotStruct},
+		{"String input", "not a struct", ErrNotStruct},
+		{"Int input", 123, ErrNotStruct},
+		{"Slice input", []string{"value1", "value2"}, ErrNotStruct},
 	}
 
 	for _, tt := range tests2 {
 		t.Run(tt.name, func(t *testing.T) {
 			result, err := Validate(tt.input)
-			assert.Nil(t, err)
+			assert.ErrorIs(t, err, tt.expectedErr)
 			assert.Len(t, result, 0)
 		})
+	}
+
+	// multi validations test
+	mv := ManyValidationStruct{Field: "8VI4567890"}
+	mvResult, err := Validate(mv)
+	assert.Nil(t, err)
+	assert.Len(t, mvResult, 2)
+	for _, v := range mvResult {
+		assert.True(t, errors.Is(v.Err, ErrInvalidStringLen) || errors.Is(v.Err, ErrInvalidStringRegexp))
 	}
 }
