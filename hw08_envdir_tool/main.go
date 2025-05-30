@@ -21,7 +21,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	RunCmd(commandData, env)
-
-	return
+	exitCode := RunCmd(commandData, env)
+	if exitCode != 0 {
+		os.Exit(exitCode)
+	}
 }
